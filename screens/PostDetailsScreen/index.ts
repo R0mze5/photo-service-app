@@ -1,0 +1,1 @@
+export { PostDetailsScreen } from "./PostDetailsScreen";

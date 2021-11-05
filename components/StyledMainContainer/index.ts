@@ -1,0 +1,1 @@
+export { StyledMainContainer } from "./StyledMainContainer";

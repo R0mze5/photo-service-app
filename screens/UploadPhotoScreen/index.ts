@@ -1,0 +1,1 @@
+export { UploadPhotoScreen } from "./UploadPhotoScreen";

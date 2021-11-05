@@ -1,0 +1,1 @@
+export { DialogsScreen } from "./DialogsScreen";

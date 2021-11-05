@@ -1,0 +1,38 @@
+export const colors = {
+  blackColor: "#262626",
+  grayColor: "#fafafa",
+  darkGrayColor: "#999999",
+  lightGrayColor: "rgb(230,230,230)",
+  redColor: "#ed4956",
+  blueColor: "#3897f0",
+  darkBlueColor: "#003569",
+  whiteColor: "#ffffff",
+
+  bgColor: "#fafafa",
+  boxBorder: "1px solid #e6e6e6",
+  borderRadius: "4px",
+  maxWidth: "935px",
+  postBgColor: "#fff",
+};
+
+export const theme = {
+  authButtonBgColor: colors.blueColor,
+  authButtonTextColor: colors.whiteColor,
+  authLinkTextColor: colors.blueColor,
+  authInputBgColor: colors.grayColor,
+  authInputBorderColor: colors.darkGrayColor,
+  authInputBorderRadius: colors.borderRadius,
+  authDivider: colors.lightGrayColor,
+  headerIconColor: colors.blackColor,
+  navigationBackgroundColor: "#fafafa",
+  bottomNavigationIconColor: colors.blackColor,
+  bottomNavigationIconFocusColor: colors.darkGrayColor,
+  mainLoaderColor: colors.blackColor,
+  likedIconColor: colors.redColor,
+  unlikedIconColor: colors.blackColor,
+  searchBgColor: colors.lightGrayColor,
+  searchPlaceholderColor: colors.darkGrayColor,
+  screenStackNavigatorHeaderTintColor: colors.blackColor,
+  textColor: colors.darkGrayColor,
+  profileDividerColor: colors.lightGrayColor,
+};

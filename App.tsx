@@ -1,21 +1,92 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+
+import { Ionicons } from "@expo/vector-icons";
+import AppLoading from "expo-app-loading";
+import * as Font from "expo-font";
+import { Asset } from "expo-asset";
+
+import { ApolloClient } from "@apollo/client";
+import { ThemeProvider } from "styled-components";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  createHttpLink,
+  InMemoryCache,
+  NormalizedCacheObject,
+} from "@apollo/client/core";
+import { persistCache, AsyncStorageWrapper } from "apollo3-cache-persist";
+import { ApolloProvider } from "@apollo/client";
+import { theme } from "./styles";
+import { NavController } from "./components/NavController";
+import { AuthProvider } from "./context/AuthContext";
+import { apolloClientOptions } from "./apollo";
+import { setContext } from "@apollo/client/link/context";
+
+const cache = new InMemoryCache();
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  const [loaded, setLoaded] = useState(false);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  const [isLoggedIn, setIsLoggedIn] = useState<null | boolean>(null);
+
+  const [client, setClient] =
+    useState<null | ApolloClient<NormalizedCacheObject>>(null);
+
+  const preload = async (): Promise<void> => {
+    try {
+      await Font.loadAsync({ ...Ionicons.font });
+      await Asset.loadAsync(require("./assets/iconLogo.svg"));
+      await persistCache({
+        cache,
+        storage: new AsyncStorageWrapper(AsyncStorage),
+      });
+
+      const httpLink = createHttpLink(apolloClientOptions);
+
+      const authLink = setContext(async (_, { headers }) => {
+        const token = await AsyncStorage.getItem("jwt");
+
+        return {
+          headers: {
+            ...headers,
+            authorization: token ? `Bearer ${token}` : "",
+          },
+        };
+      });
+
+      const client = new ApolloClient({
+        cache,
+        link: authLink.concat(httpLink),
+      });
+
+      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+
+      setIsLoggedIn(isLoggedIn === "true" ? true : false);
+
+      setClient(client);
+      setLoaded(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    preload();
+  }, []);
+
+  if (loaded && client && isLoggedIn !== null) {
+    return (
+      <ApolloProvider client={client}>
+        <ThemeProvider theme={theme}>
+          <AuthProvider isLoggedIn={isLoggedIn}>
+            <StatusBar style="auto" />
+            <NavController></NavController>
+          </AuthProvider>
+        </ThemeProvider>
+      </ApolloProvider>
+    );
+  }
+
+  return <AppLoading></AppLoading>;
+}
