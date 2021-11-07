@@ -12,17 +12,33 @@ import { ThemeProvider } from "styled-components";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createHttpLink,
+  HttpLink,
   InMemoryCache,
   NormalizedCacheObject,
+  split,
 } from "@apollo/client/core";
+import { WebSocketLink } from "@apollo/client/link/ws";
 import { persistCache, AsyncStorageWrapper } from "apollo3-cache-persist";
 import { ApolloProvider } from "@apollo/client";
 import { theme } from "./styles";
 import { NavController } from "./components/NavController";
 import { AuthProvider } from "./context/AuthContext";
 import { setContext } from "@apollo/client/link/context";
+import { getMainDefinition } from "@apollo/client/utilities";
 
-const apiUrl = process.env.API_URI;
+const apiUrl = process.env.API_URI || "";
+const wsUrl = process.env.WS_URI || "";
+
+const wsLink = new WebSocketLink({
+  uri: wsUrl,
+  options: {
+    reconnect: true,
+  },
+});
+
+const httpLink = new HttpLink({
+  uri: apiUrl,
+});
 
 const cache = new InMemoryCache();
 
@@ -43,8 +59,6 @@ export default function App() {
         storage: new AsyncStorageWrapper(AsyncStorage),
       });
 
-      const httpLink = createHttpLink({ uri: apiUrl });
-
       const authLink = setContext(async (_, { headers }) => {
         const token = await AsyncStorage.getItem("jwt");
 
@@ -56,9 +70,21 @@ export default function App() {
         };
       });
 
+      const splitLink = split(
+        ({ query }) => {
+          const definition = getMainDefinition(query);
+          return (
+            definition.kind === "OperationDefinition" &&
+            definition.operation === "subscription"
+          );
+        },
+        wsLink,
+        httpLink
+      );
+
       const client = new ApolloClient({
         cache,
-        link: authLink.concat(httpLink),
+        link: authLink.concat(splitLink),
       });
 
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");

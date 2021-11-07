@@ -1,4 +1,4 @@
 export type MessagesNavigationParamList = {
   Dialogs: undefined;
-  Messages?: undefined;
+  Messages: { roomId: string };
 };
