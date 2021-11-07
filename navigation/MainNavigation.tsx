@@ -10,7 +10,6 @@ export const MainStack = createStackNavigator<MainNavigationParamList>();
 export const MainNavigation: React.FC = () => {
   return (
     <MainStack.Navigator
-      initialRouteName={"PhotoNavigation"}
       screenOptions={{ headerShown: false, gestureEnabled: true }}
     >
       <MainStack.Screen

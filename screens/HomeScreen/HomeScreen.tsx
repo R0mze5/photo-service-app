@@ -30,7 +30,6 @@ export const HomeScreen = () => {
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
       }
-      // on={() => console.log(30)}
     >
       {loading ? (
         <Loader></Loader>
@@ -39,10 +38,4 @@ export const HomeScreen = () => {
       )}
     </ScrollView>
   );
-
-  // return (
-  //   <StyledMainContainer>
-  //     {loading ? <Loader></Loader> : <ScrollView></ScrollView>}
-  //   </StyledMainContainer>
-  // );
 };

@@ -20,8 +20,9 @@ import { ApolloProvider } from "@apollo/client";
 import { theme } from "./styles";
 import { NavController } from "./components/NavController";
 import { AuthProvider } from "./context/AuthContext";
-import { apolloClientOptions } from "./apollo";
 import { setContext } from "@apollo/client/link/context";
+
+const apiUrl = process.env.API_URI;
 
 const cache = new InMemoryCache();
 
@@ -42,7 +43,7 @@ export default function App() {
         storage: new AsyncStorageWrapper(AsyncStorage),
       });
 
-      const httpLink = createHttpLink(apolloClientOptions);
+      const httpLink = createHttpLink({ uri: apiUrl });
 
       const authLink = setContext(async (_, { headers }) => {
         const token = await AsyncStorage.getItem("jwt");

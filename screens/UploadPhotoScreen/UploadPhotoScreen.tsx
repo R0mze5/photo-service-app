@@ -1,13 +1,7 @@
 import { useMutation } from "@apollo/client";
 import { StackScreenProps } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Keyboard,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-} from "react-native";
+import { Alert, Keyboard, TouchableWithoutFeedback } from "react-native";
 import { AuthButton } from "../../components/AuthButton";
 import useInput from "../../hooks/useInput";
 import { colors } from "../../styles";
@@ -23,38 +17,80 @@ import {
   StyledTextInput,
 } from "./UploadPhotoScreen.styled";
 
+import axios from "axios";
+import { GET_MY_FEED } from "../../queries";
+
+const apiUrl = process.env.API_URI || "";
+
 export const UploadPhotoScreen: React.FC<
   StackScreenProps<PhotoNavigationParamList, "UploadPhoto">
 > = ({ route, navigation }) => {
   const photoAsset = route.params.photo;
 
   const [isLoading, setIsLoading] = useState(false);
+
   const captionInput = useInput("");
   const locationInput = useInput("");
 
-  const [createPostMutation] =
-    useMutation<{ createPost: PostInterface }>(CREATE_POST);
+  const [createPostMutation] = useMutation<{ createPost: PostInterface }>(
+    CREATE_POST,
+    { refetchQueries: [GET_MY_FEED] }
+  );
 
   const handleSubmit = async () => {
-    const postValues: PostCreate = {
-      files: [photoAsset.uri],
-      location: locationInput.value,
-      caption: captionInput.value,
-    };
-
     try {
-      const post = await createPostMutation({ variables: postValues });
-      console.log(post);
+      setIsLoading(true);
+      const formData = new FormData();
 
-      if (post.data) {
-        const postId = post.data?.createPost?.id;
+      formData.append("file", {
+        name: photoAsset.filename,
+        type: "image/jpeg",
+        uri: photoAsset.uri,
+      } as any);
 
-        if (postId) {
-          // navigation.navigate()
+      const response = await axios.post(apiUrl + "/api/upload", formData, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // const response = await fetch(apiUrl + "/api/upload", {
+      //   method: "POST",
+      //   body: formData,
+      //   headers: {
+      //     "content-type": "multipart/form-data",
+      //   },
+      // });
+
+      // console.log(response);
+
+      const file = response?.data;
+
+      if (file?.location) {
+        const postData = {
+          caption: captionInput.value,
+          location: locationInput.value,
+          files: [file.location],
+        } as PostCreate;
+
+        const postResponse = await createPostMutation({
+          variables: postData,
+        });
+
+        console.log(postResponse);
+
+        if (postResponse?.data?.createPost?.id) {
+          navigation.navigate("TabNavigation" as any);
         }
+      } else {
+        Alert.alert("Post creation error");
       }
     } catch (error) {
       console.log(error);
+      Alert.alert("Can't upload file");
+    } finally {
+      setIsLoading(false);
     }
   };
 
